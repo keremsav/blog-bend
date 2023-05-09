@@ -1,38 +1,26 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../Models/User')
-
 const crypto = require('crypto');
+let bcrypt = require('bcrypt');
 
-function genPassword(password) {
-    let salt = crypto.randomBytes(32).toString('hex');
-    let genHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-
-    return {
-        salt: salt,
-        hash: genHash
-    };
+ async function genPassword(password) {
+     const hash = await bcrypt.hash(password, 10);
+     console.log('this is hash '+ hash);
+    return hash;
 }
-function validPassword(password, hash, salt) {
-    let hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
-    return hash === hashVerify;
-}
-
 
 const customFields = {
-    usernameField: 'uname',
-    passwordField: 'pw'
+    emailField: 'email',
+    passwordField: 'password'
 };
 
-const verifyCallback = (username, password, done) => {
-
-    User.findOne({ username: username })
+const verifyCallback = (email, password, done) => {
+    User.findOne({ email: email })
         .then((user) => {
 
             if (!user) { return done(null, false) }
-
-            const isValid = validPassword(password, user.hash, user.salt);
-
+            const isValid = bcrypt.compare(password,user.password);
             if (isValid) {
                 return done(null, user);
             } else {
@@ -53,14 +41,16 @@ passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
-passport.deserializeUser((userId, done) => {
-    User.findById(userId)
-        .then((user) => {
-            done(null, user);
-        })
-        .catch(err => done(err))
+passport.deserializeUser(async (userId, done) => {
+    try {
+        User.findById(userId)
+            .then((user) => {
+                done(null, user);
+            })
+            .catch(err => done(err))
+    } catch (err) {
+        done(err)
+    }
 });
 
-
-module.exports.validPassword = validPassword;
-module.exports.genPassword = genPassword;
+module.exports = genPassword;

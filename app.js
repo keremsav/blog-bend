@@ -3,13 +3,24 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+let session = require('express-session');
 let MongoStore = require('connect-mongo');
 let mongoose = require('mongoose');
 let crypto = require('crypto');
 let passport = require('passport');
-let session = require('express-session');
 require('dotenv').config();
+let authRouter = require('./routes/authRoutes')
 
+
+mongoose.connect('mongodb://localhost:27017/Blog',{
+  useNewUrlParser : true
+})
+    .then(()=> {
+      console.log('connected to DB')
+    })
+    .catch(err => {
+      console.log(err);
+    })
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -28,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/',authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -50,19 +62,16 @@ app.use(function(err, req, res, next) {
  */
 
 let db = process.env.DB
-const sessionStore = new MongoStore({ mongooseConnection: mongoose.createConnection(db, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }) , collection: 'sessions' });
+
 
 app.use(session({
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
-  store: sessionStore,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // Equals 1 day (1 day * 24 hr/1 day * 60 min/1 hr * 60 sec/1 min * 1000 ms / 1 sec)
-  }
+  store: MongoStore.create({
+    mongoUrl: db,
+    ttl:  24 * 60 * 60 , // = 1 days. Default
+  })
 }));
 
 /**
