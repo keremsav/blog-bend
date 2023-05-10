@@ -1,5 +1,5 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+const LocalStrategy = require('passport-local');
 const User = require('../Models/User')
 const crypto = require('crypto');
 let bcrypt = require('bcrypt');
@@ -10,18 +10,22 @@ let bcrypt = require('bcrypt');
     return hash;
 }
 
-const customFields = {
-    emailField: 'email',
+
+passport.use(new LocalStrategy({
+    usernameField : 'email',
     passwordField: 'password'
-};
+    },
+    (email, password, done) => {
 
-const verifyCallback = (email, password, done) => {
     User.findOne({ email: email })
-        .then((user) => {
-
+        .then( user => {
             if (!user) { return done(null, false) }
-            const isValid = bcrypt.compare(password,user.password);
-            if (isValid) {
+            const isValid = bcrypt.compare(password, user.password).then(function(result) {
+                console.log(result)
+               return result;
+            });
+
+            if (isValid === true) {
                 return done(null, user);
             } else {
                 return done(null, false);
@@ -31,11 +35,7 @@ const verifyCallback = (email, password, done) => {
             done(err);
         });
 
-}
-
-const strategy  = new LocalStrategy(customFields, verifyCallback);
-
-passport.use(strategy);
+}));
 
 passport.serializeUser((user, done) => {
     done(null, user.id);

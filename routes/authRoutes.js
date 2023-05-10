@@ -6,12 +6,12 @@ const isAdmin = require('./authMiddleware').isAdmin;
 let passValidator = require('./authMiddleware').passValidator;
 let validator = require('validator');
 let bcrypt = require('bcrypt');
-let genPassword = require('../config/passport')
+require('../config/passport')
 /**
  * -------------- POST ROUTES ----------------
  */
 
-router.post('/login', passport.authenticate('local', { failureRedirect: '/login-failure', successRedirect: 'login-success' }));
+router.post('/login', passport.authenticate('local', { successRedirect: 'login-success' }));
 
 router.post('/register', async (req, res, next) => {
     try {
@@ -58,10 +58,22 @@ router.get('/', (req, res, next) => {
 // When you visit http://localhost:3000/login, you will see "Login Page"
 router.get('/login', (req, res, next) => {
 
-    const form = '<h1>Login Page</h1><form method="POST" action="/login">\
-    Enter Username:<br><input type="text" name="uname">\
-    <br>Enter Password:<br><input type="password" name="pw">\
-    <br><br><input type="submit" value="Submit"></form>';
+    /*const form = '<h1>Login Page</h1><form method="POST" action="/login">\
+    Enter Email:<br><input type="text" name="email">\
+    <br>Enter Password:<br><input type="password" name="password">\
+    <br><br><input type="submit" value="Submit"></form>';*/
+    let form = '<h1>Sign in</h1>\n' +
+        '<form action="/login" method="post">\n' +
+        '    <section>\n' +
+        '        <label for="email">Email</label>\n' +
+        '        <input id="email" name="email" type="text" autocomplete="email" required autofocus>\n' +
+        '    </section>\n' +
+        '    <section>\n' +
+        '        <label for="current-password">Password</label>\n' +
+        '        <input id="current-password" name="password" type="password" autocomplete="current-password" required>\n' +
+        '    </section>\n' +
+        '    <button type="submit">Sign in</button>\n' +
+        '</form>'
 
     res.send(form);
 

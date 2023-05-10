@@ -6,7 +6,6 @@ var logger = require('morgan');
 let session = require('express-session');
 let MongoStore = require('connect-mongo');
 let mongoose = require('mongoose');
-let crypto = require('crypto');
 let passport = require('passport');
 require('dotenv').config();
 let authRouter = require('./routes/authRoutes')
