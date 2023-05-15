@@ -11,7 +11,11 @@ require('../config/passport')
  * -------------- POST ROUTES ----------------
  */
 
-router.post('/login', passport.authenticate('local', { successRedirect: 'login-success' }));
+router.post('/login', passport.authenticate('local', {
+        //usernameField: 'email',
+       // passwordField: 'password',
+        successRedirect: '/login-success',
+        failureRedirect: '/login-failure'}));
 
 router.post('/register', async (req, res, next) => {
     try {
@@ -92,12 +96,6 @@ router.get('/register', (req, res, next) => {
 
 });
 
-/**
- * Lookup how to authenticate users on routes with Local Strategy
- * Google Search: "How to use Express Passport Local Strategy"
- *
- * Also, look up what behaviour express session has without a maxage set
- */
 router.get('/protected-route', isAuth, (req, res, next) => {
     res.send('You made it to the route.');
 });
@@ -108,8 +106,13 @@ router.get('/admin-route', isAdmin, (req, res, next) => {
 
 // Visiting this route logs the user out
 router.get('/logout', (req, res, next) => {
-    req.logout();
-    res.redirect('/protected-route');
+    req.logout(function(err) {
+        if (err) {
+            return next(err);
+        }
+        res.redirect('/');
+    });
+
 });
 
 router.get('/login-success', (req, res, next) => {

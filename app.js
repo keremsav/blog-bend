@@ -4,10 +4,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 let session = require('express-session');
-let MongoStore = require('connect-mongo');
+const MongoStore = require('connect-mongo');
 let mongoose = require('mongoose');
 let passport = require('passport');
 require('dotenv').config();
+require('./config/passport');
+
 let authRouter = require('./routes/authRoutes')
 
 
@@ -36,6 +38,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+let db = process.env.DB
+
+
+app.use(session({
+  secret: process.env.SECRET,
+  resave: false,
+  saveUninitialized: true,
+  store: MongoStore.create({
+    mongoUrl: db,
+    ttl:  24 * 60 * 60 , // = 1 days. Default
+  })
+}));
+app.use(passport.initialize());
+
+app.use(passport.session());
+
+
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/',authRouter);
@@ -60,28 +80,13 @@ app.use(function(err, req, res, next) {
  *-------------- SESSION SETUP ----------------
  */
 
-let db = process.env.DB
-
-
-app.use(session({
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: true,
-  store: MongoStore.create({
-    mongoUrl: db,
-    ttl:  24 * 60 * 60 , // = 1 days. Default
-  })
-}));
 
 /**
  *-------------- PASSPORT AUTHENTICATION ----------------
 **/
 
 // Need to require the entire Passport config module so app.js knows about it
-require('./config/passport');
 
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use((req, res, next) => {
   console.log(req.session);

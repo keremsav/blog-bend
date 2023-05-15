@@ -15,30 +15,31 @@ passport.use(new LocalStrategy({
     usernameField : 'email',
     passwordField: 'password'
     },
-    (email, password, done) => {
-
-    User.findOne({ email: email })
-        .then( user => {
-            if (!user) { return done(null, false) }
-            const isValid = bcrypt.compare(password, user.password).then(function(result) {
-                console.log(result)
-               return result;
-            });
-
-            if (isValid === true) {
+    async (email, password, done) => {
+        try {
+            const user = await User.findOne({ email: email });
+            if (!user) {
+                return done(null, false);
+            }
+            const isValid = await bcrypt.compare(password, user.password);
+            if (isValid) {
+                console.log(user)
                 return done(null, user);
             } else {
                 return done(null, false);
             }
-        })
-        .catch((err) => {
-            done(err);
-        });
-
-}));
+        } catch (err) {
+            return done(err);
+        }
+    }
+));
 
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    try {
+        done(null, user.id);
+    } catch (err) {
+        done(err);
+    }
 });
 
 passport.deserializeUser(async (userId, done) => {
@@ -53,4 +54,5 @@ passport.deserializeUser(async (userId, done) => {
     }
 });
 
+module.exports = passport;
 module.exports = genPassword;
