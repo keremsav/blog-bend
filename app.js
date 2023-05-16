@@ -17,6 +17,7 @@ const blogRouter = require('./routes/blogRoutes');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const tagRouter = require('./routes/tagsRoutes');
+const commentRouter = require('./routes/CommentRoutes');
 
 // Set up the connection to the MongoDB database
 const mongoose = require('mongoose');
@@ -71,6 +72,7 @@ app.use('/users', usersRouter);
 app.use('/', authRouter);
 app.use('/', blogRouter);
 app.use('/',tagRouter);
+app.use('/',commentRouter);
 
 // Handle 404 error
 app.use(function (req, res, next) {

@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Tag = require('../Models/Tags');
 let slugify = require('slugify');
+const {isAdmin} = require("./authMiddleware");
 
 // Create a new tag
-router.post('/tags', async (req, res) => {
+router.post('/tags',isAdmin, async (req, res) => {
     try {
         const { name, description } = req.body;
 
@@ -47,7 +48,7 @@ router.get('/tags/:id', async (req, res) => {
 });
 
 // Update a tag
-router.put('/tags/:id', async (req, res) => {
+router.put('/tags/:id',isAdmin, async (req, res) => {
     try {
         const { name, description } = req.body;
         const updatedTag = await Tag.findByIdAndUpdate(
@@ -68,7 +69,7 @@ router.put('/tags/:id', async (req, res) => {
 });
 
 // Delete a tag
-router.delete('/tags/:id', async (req, res) => {
+router.delete('/tags/:id',isAdmin, async (req, res) => {
     try {
         const deletedTag = await Tag.findByIdAndDelete(req.params.id);
         if (!deletedTag) {
