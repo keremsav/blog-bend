@@ -1,101 +1,103 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-let session = require('express-session');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const session = require('express-session');
 const MongoStore = require('connect-mongo');
-let mongoose = require('mongoose');
-let passport = require('passport');
+
+// Import and configure passport for authentication
+const passport = require('passport');
 require('dotenv').config();
 require('./config/passport');
 
-let authRouter = require('./routes/authRoutes')
+// Import routers for different routes
+const authRouter = require('./routes/authRoutes');
+const blogRouter = require('./routes/blogRoutes');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const tagRouter = require('./routes/tagsRoutes');
 
-
-mongoose.connect('mongodb://localhost:27017/Blog',{
-  useNewUrlParser : true
+// Set up the connection to the MongoDB database
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/Blog', {
+  useNewUrlParser: true
 })
-    .then(()=> {
-      console.log('connected to DB')
+    .then(() => {
+      console.log('Connected to DB');
     })
     .catch(err => {
       console.log(err);
-    })
+    });
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const app = express();
 
-var app = express();
-
-// view engine setup
+// Configure view engine and static file directory
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let db = process.env.DB
+/**
+ *-------------- SESSION SETUP ----------------
+ */
 
-
+// Set up session middleware with MongoDB as the session store
+const db = process.env.DB;
 app.use(session({
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
   store: MongoStore.create({
     mongoUrl: db,
-    ttl:  24 * 60 * 60 , // = 1 days. Default
+    ttl: 24 * 60 * 60, // 1 day (default)
   })
 }));
-app.use(passport.initialize());
 
+/**
+ *-------------- PASSPORT AUTHENTICATION ----------------
+ **/
+
+// Initialize and use Passport middleware
+app.use(passport.initialize());
 app.use(passport.session());
 
-
-
+// Set up routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/',authRouter);
+app.use('/', authRouter);
+app.use('/', blogRouter);
+app.use('/',tagRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
+// Handle 404 error
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
+// Error handler
+app.use(function (err, req, res, next) {
+  // Set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
+  // Render the error page
   res.status(err.status || 500);
   res.render('error');
 });
 
-/**
- *-------------- SESSION SETUP ----------------
- */
-
-
-/**
- *-------------- PASSPORT AUTHENTICATION ----------------
-**/
-
-// Need to require the entire Passport config module so app.js knows about it
-
-
+// Middleware to log session and user information
 app.use((req, res, next) => {
   console.log(req.session);
   console.log(req.user);
   next();
 });
-let PORT = process.env.PORT;
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`App listening on ${PORT}`)
-})
+  console.log(`App listening on ${PORT}`);
+});
 
 module.exports = app;
