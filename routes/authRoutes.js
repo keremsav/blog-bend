@@ -7,6 +7,8 @@ let passValidator = require('./authMiddleware').passValidator;
 let validator = require('validator');
 let bcrypt = require('bcrypt');
 require('../config/passport')
+let generateVerificationToken = require('../controllers/nodeMailer').generateVerificationToken;
+let sendVerificationMail = require('../controllers/nodeMailer').SendVerificationMail;
 /**
  * -------------- POST ROUTES ----------------
  */
@@ -35,13 +37,17 @@ router.post('/register', async (req, res, next) => {
             return res.json({ message: 'User already exist with the given emailId' })
         }
          let hashed = await bcrypt.hash(password, 10);
-         console.log(hashed)
+        const verificationToken = generateVerificationToken();
+
          const user = new User({
              username : req.body.username,
              password : hashed,
              email : req.body.email,
+             verificationToken : verificationToken,
          });
+
          await user.save();
+         await sendVerificationMail(user.email, verificationToken);
 
         res.status(201).send({user});
     } catch (error) {
@@ -122,5 +128,23 @@ router.get('/login-success', (req, res, next) => {
 router.get('/login-failure', (req, res, next) => {
     res.send('You entered the wrong password.');
 });
+
+router.get('/verify/:token', async (req, res, next) => {
+    try {
+        const { token } = req.params;
+        const user = await User.findOne({ verificationToken: token });
+        if (!user) {
+            return res.status(400).send('Invalid token');
+        }
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        await user.save();
+        return res.send('Email verification successful! You can now <a href="/login">login</a>.');
+    } catch (error) {
+        return res.status(400).send({ error: error });
+    }
+});
+
 
 module.exports = router;
