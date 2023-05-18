@@ -9,6 +9,7 @@ let bcrypt = require('bcrypt');
 require('../config/passport')
 let generateVerificationToken = require('../controllers/nodeMailer').generateVerificationToken;
 let sendVerificationMail = require('../controllers/nodeMailer').SendVerificationMail;
+let sendResetPassMail = require('../controllers/nodeMailer').sendResetPassMail;
 /**
  * -------------- POST ROUTES ----------------
  */
@@ -56,10 +57,95 @@ router.post('/register', async (req, res, next) => {
 
 });
 
+// Forgot Password
+router.post('/forgot-password', async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        if (!email || !validator.isEmail(email)) {
+            return res.json({ message: 'Invalid email address' });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.json({ message: 'User not found' });
+        }
+
+        let resetToken = generateVerificationToken();
+        user.resetToken = resetToken;
+        await user.save();
+
+        await sendResetPassMail(user.email, resetToken);
+
+        res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res, next) => {
+    try {
+        const { resetToken, password } = req.body;
+
+        if (!resetToken || !password) {
+            return res.status(400).json({ message: 'Invalid reset token or password' });
+        }
+        if(passValidator(password) !== true) {
+            return res.json({ message: 'Password is to weak.' })
+        }
+        const user = await User.findOne({ resetToken });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid reset token' });
+        }
+
+        user.password = await bcrypt.hash(password, 10);
+        user.resetToken = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 
 /**
  * -------------- GET ROUTES ----------------
  */
+
+// Render forgot password form
+router.get('/forgot-password', (req, res, next) => {
+    const form = '<h1>Forgot Password</h1><form method="POST" action="/forgot-password">\
+    Enter Email:<br><input type="text" name="email">\
+    <br><br><input type="submit" value="Submit"></form>';
+
+    res.send(form);
+});
+
+// Render reset password form
+router.get('/reset-password/:resetToken', async (req, res, next) => {
+    try {
+        const { resetToken } = req.params;
+
+        const user = await User.findOne({ resetToken });
+        if (!user) {
+            return res.status(400).send('Invalid reset token');
+        }
+
+        const form = `<h1>Reset Password</h1>
+      <form method="POST" action="/reset-password">
+        <input type="hidden" name="resetToken" value="${resetToken}">
+        Enter New Password:<br><input type="password" name="password">
+        <br><br><input type="submit" value="Submit">
+      </form>`;
+
+        res.send(form);
+    } catch (error) {
+        return res.status(500).send('Internal server error');
+    }
+});
 
 router.get('/', (req, res, next) => {
     res.send('<h1>Home</h1><p>Please <a href="/register">register</a></p>');
