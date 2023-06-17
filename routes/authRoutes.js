@@ -15,10 +15,12 @@ let sendResetPassMail = require('../controllers/nodeMailer').sendResetPassMail;
  */
 
 router.post('/login', passport.authenticate('local', {
-        //usernameField: 'email',
-       // passwordField: 'password',
-        successRedirect: '/login-success',
-        failureRedirect: '/login-failure'}));
+    usernameField: 'email',
+    passwordField: 'password',
+}), (req, res) => {
+    // Authentication succeeded, send a custom response
+    res.json({ success: true });
+});
 
 router.post('/register', async (req, res, next) => {
     try {

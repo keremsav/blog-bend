@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+let cors = require('cors');
 
 // Import and configure passport for authentication
 const passport = require('passport');
@@ -32,6 +33,18 @@ mongoose.connect('mongodb://localhost:27017/Blog', {
     });
 
 const app = express();
+
+app.use(
+    cors({
+      origin: 'http://localhost:4200',
+    })
+);
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 // Configure view engine and static file directory
 app.set('views', path.join(__dirname, 'views'));
@@ -69,10 +82,10 @@ app.use(passport.session());
 // Set up routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/', authRouter);
-app.use('/', blogRouter);
-app.use('/',tagRouter);
-app.use('/',commentRouter);
+app.use('/api', authRouter);
+app.use('/api', blogRouter);
+app.use('/api',tagRouter);
+app.use('/api',commentRouter);
 
 // Handle 404 error
 app.use(function (req, res, next) {
