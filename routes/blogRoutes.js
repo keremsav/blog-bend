@@ -11,7 +11,7 @@ router.post('/posts', isAdmin, async (req, res) => {
         const { title, content, tags,image } = req.body;
         const author = req.user.username;
 
-        const post = new Posts({ title, content, author, tags ,image});
+        const post = new Posts({ content,title, author, tags ,image});
         await post.save();
 
         res.status(201).json(post);
