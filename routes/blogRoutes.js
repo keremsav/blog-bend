@@ -8,10 +8,10 @@ let User = require('../Models/User');
 // Creat blog post
 router.post('/posts', isAdmin, async (req, res) => {
     try {
-        const { title, content, tags } = req.body;
-        const author = req.user._id;
+        const { title, content, tags,image } = req.body;
+        const author = req.user.username;
 
-        const post = new Posts({ title, content, author, tags });
+        const post = new Posts({ title, content, author, tags ,image});
         await post.save();
 
         res.status(201).json(post);
@@ -45,10 +45,11 @@ router.get('/posts/:id', async (req, res) => {
 //Update a blog post.
 router.put('/posts/:id', isAdmin, async (req, res) => {
     try {
-        const { title, content, tags } = req.body;
+        const { title, content, tags ,image} = req.body;
+        const author = req.user.username;
         const updatedPost = await Posts.findByIdAndUpdate(
             req.params.id,
-            { title, content, tags },
+            { title, content, tags ,image,author},
             { new: true }
         );
         if (!updatedPost) {

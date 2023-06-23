@@ -4,7 +4,7 @@ let slugify = require('slugify');
 const tagSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     slug: { type: String},
-    description: { type: String, minlength: 5, maxlength: 100 },
+    description: { type: String, minlength: 5, maxlength: 150 },
 }, { timestamps: true });
 
 // Generate slug before saving the tag
