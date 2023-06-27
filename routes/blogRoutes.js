@@ -23,12 +23,28 @@ router.post('/posts', isAdmin, async (req, res) => {
 // Get all blog posts
 router.get('/posts', async (req, res) => {
     try {
-        const posts = await Posts.find();
-        res.json(posts);
+        const page = parseInt(req.query.page) || 1; // Get the current page number from the query parameters
+        const limit = parseInt(req.query.limit) || 6; // Get the number of records per page from the query parameters
+
+        const totalCount = await Posts.countDocuments(); // Get the total number of records in the "Posts" collection
+
+        const totalPages = Math.ceil(totalCount / limit); // Calculate the total number of pages
+
+        const skip = (page - 1) * limit; // Calculate the offset value
+
+        const posts = await Posts.find().skip(skip).limit(limit); // Fetch the paginated posts from the database
+
+        res.send({
+            posts,
+            page,
+            totalPages,
+            totalCount
+        });
     } catch (error) {
         res.status(500).json({ error: 'Failed to retrieve blog posts' });
     }
 });
+
 
 // Get a specific blog post
 router.get('/posts/:id', async (req, res) => {
