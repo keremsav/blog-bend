@@ -25,6 +25,7 @@ router.get('/posts', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // Get the current page number from the query parameters
         const limit = parseInt(req.query.limit) || 6; // Get the number of records per page from the query parameters
+        const date = parseInt(req.query.date) || -1;
 
         const totalCount = await Posts.countDocuments(); // Get the total number of records in the "Posts" collection
 
@@ -32,7 +33,7 @@ router.get('/posts', async (req, res) => {
 
         const skip = (page - 1) * limit; // Calculate the offset value
 
-        const posts = await Posts.find().skip(skip).limit(limit); // Fetch the paginated posts from the database
+        const posts = await Posts.find().sort({createdAt: date}).skip(skip).limit(limit); // Fetch the paginated posts from the database
 
         res.send({
             posts,
