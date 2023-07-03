@@ -51,6 +51,7 @@ router.put('/comments/:id',isAuth, async (req, res) => {
         const commentId = req.params.id;
         const { content } = req.body;
 
+
         const updatedComment = await Comment.findByIdAndUpdate(
             commentId,
             { content },
