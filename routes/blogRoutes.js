@@ -62,11 +62,11 @@ router.get('/posts/:id', async (req, res) => {
 //Update a blog post.
 router.put('/posts/:id', isAdmin, async (req, res) => {
     try {
-        const { title, content, tags ,image} = req.body;
+        const { title, content, tags ,image,slug} = req.body;
         const author = req.user.username;
         const updatedPost = await Posts.findByIdAndUpdate(
             req.params.id,
-            { title, content, tags ,image,author},
+            { title, content, tags ,image,author,slug},
             { new: true }
         );
         if (!updatedPost) {
