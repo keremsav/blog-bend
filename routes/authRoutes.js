@@ -17,9 +17,9 @@ let sendResetPassMail = require('../controllers/nodeMailer').sendResetPassMail;
 router.post('/login', passport.authenticate('local', {
     usernameField: 'email',
     passwordField: 'password',
-}), (req, res) => {
+}),isAdmin, (req, res) => {
     // Authentication succeeded, send a custom response
-    res.json({ success: true });
+    res.cookie('loggedIn','true',{ maxAge: 2 * 60 * 60 * 1000, httpOnly: true }).json({ success: true });
 });
 
 router.post('/register', async (req, res, next) => {
@@ -195,7 +195,7 @@ router.get('/protected-route', isAuth, (req, res, next) => {
 });
 
 router.get('/admin-route', isAdmin, (req, res, next) => {
-    res.send('You made it to the admin route.');
+    res.send('true');
 });
 
 // Visiting this route logs the user out

@@ -19,6 +19,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const tagRouter = require('./routes/tagsRoutes');
 const commentRouter = require('./routes/CommentRoutes');
+const contactRouter = require('./routes/contactsRoutes');
 
 // Set up the connection to the MongoDB database
 const mongoose = require('mongoose');
@@ -78,7 +79,6 @@ app.use(session({
 // Initialize and use Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
-
 // Set up routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -86,6 +86,7 @@ app.use('/api', authRouter);
 app.use('/api', blogRouter);
 app.use('/api',tagRouter);
 app.use('/api',commentRouter);
+app.use('/api', contactRouter);
 
 // Handle 404 error
 app.use(function (req, res, next) {
