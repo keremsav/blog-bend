@@ -8,10 +8,10 @@ let User = require('../Models/User');
 // Creat blog post
 router.post('/posts', isAdmin, async (req, res) => {
     try {
-        const { title, content, tags,image } = req.body;
+        const { title, content, tags,image,categoryIds } = req.body;
         const author = req.user.username;
 
-        const post = new Posts({ content,title, author, tags ,image});
+        const post = new Posts({ content,title, author, tags ,image,categoryIds});
         await post.save();
 
         res.status(201).json(post);
@@ -46,6 +46,33 @@ router.get('/posts', async (req, res) => {
     }
 });
 
+// Get Posts By Category
+router.get('/posts/:categoryId', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 6;
+        const date = parseInt(req.query.date) || -1;
+        const categoryId = req.params.categoryId; // Get the categoryId from the request parameters
+
+        // Fetch the total count of posts that match the specified categoryId
+        const totalCount = await Posts.countDocuments({ categoryIds: categoryId });
+
+        const totalPages = Math.ceil(totalCount / limit);
+        const skip = (page - 1) * limit;
+
+        // Fetch the paginated posts that match the specified categoryId and sort by createdAt
+        const posts = await Posts.find({ categoryIds: categoryId }).sort({ createdAt: date }).skip(skip).limit(limit);
+
+        res.send({
+            posts,
+            page,
+            totalPages,
+            totalCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve blog posts' });
+    }
+});
 
 // Get a specific blog post
 router.get('/posts/:id', async (req, res) => {
@@ -62,11 +89,11 @@ router.get('/posts/:id', async (req, res) => {
 //Update a blog post.
 router.put('/posts/:id', isAdmin, async (req, res) => {
     try {
-        const { title, content, tags ,image,slug} = req.body;
+        const { title, content, tags ,image,slug,categoryIds} = req.body;
         const author = req.user.username;
         const updatedPost = await Posts.findByIdAndUpdate(
             req.params.id,
-            { title, content, tags ,image,author,slug},
+            { title, content, tags ,image,author,slug,categoryIds},
             { new: true }
         );
         if (!updatedPost) {
@@ -77,6 +104,7 @@ router.put('/posts/:id', isAdmin, async (req, res) => {
         res.status(500).json({ error: 'Failed to update the blog post' });
     }
 });
+
 
 // Delete a blog post
 router.delete('/posts/:id', isAdmin, async (req, res) => {

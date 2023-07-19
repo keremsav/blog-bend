@@ -4,7 +4,6 @@ let ContactSchema = new mongoose.Schema({
     name : {
         type:String,
         required : true,
-        max
     },
     email : {
         type:String,

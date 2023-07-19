@@ -17,7 +17,7 @@ const authRouter = require('./routes/authRoutes');
 const blogRouter = require('./routes/blogRoutes');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const tagRouter = require('./routes/tagsRoutes');
+const categoryRouter = require('./routes/categoriesRoutes');
 const commentRouter = require('./routes/CommentRoutes');
 const contactRouter = require('./routes/contactsRoutes');
 
@@ -84,7 +84,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', authRouter);
 app.use('/api', blogRouter);
-app.use('/api',tagRouter);
+app.use('/api',categoryRouter);
 app.use('/api',commentRouter);
 app.use('/api', contactRouter);
 
