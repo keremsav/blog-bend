@@ -34,7 +34,7 @@ router.get('/categories', async (req, res) => {
 });
 
 // Get a specific tag
-router.get('/tags/:id', async (req, res) => {
+router.get('/categories/:id', async (req, res) => {
     try {
         const category = await Categories.findById(req.params.id);
         if (!category) {

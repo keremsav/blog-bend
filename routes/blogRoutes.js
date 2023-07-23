@@ -47,13 +47,12 @@ router.get('/posts', async (req, res) => {
 });
 
 // Get Posts By Category
-router.get('/posts/:categoryId', async (req, res) => {
+router.get('/posts/category', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 6;
         const date = parseInt(req.query.date) || -1;
-        const categoryId = req.params.categoryId; // Get the categoryId from the request parameters
-
+        const categoryId = req.query.categoryId; // Get the categoryId from the request parameters
         // Fetch the total count of posts that match the specified categoryId
         const totalCount = await Posts.countDocuments({ categoryIds: categoryId });
 
