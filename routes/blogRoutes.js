@@ -5,6 +5,41 @@ let isAdmin = require('./authMiddleware').isAdmin;
 let Posts = require('../Models/Posts');
 let User = require('../Models/User');
 
+
+// Get Users
+router.get('/users',async (req,res) => {
+    try {
+        let email = req.query.email;
+        if(!email) {
+            let users = await User.find();
+            res.status(200).json(users);
+        } else {
+            let users = await User.find({email: { $regex: email, $options: 'i' }},{},{lean:true})
+            res.status(200).json(users);
+        }
+    } catch (err) {
+        res.status(500).json('Cant get the users data.')
+    }
+});
+
+//Update User
+router.put('/users/:id',async (req,res) => {
+    try {
+        let id = req.params.id;
+        let {username,email,isVerified,isAdmin } = req.body;
+        let updatedUser = await User.findByIdAndUpdate(id, {username,email,isVerified,isAdmin},{new:true});
+        if(!updatedUser) {
+            res.status(404).json({error:'User Not found.'})
+        }
+        res.json(updatedUser);
+
+
+    }catch (err) {
+        res.status(500).json({error : 'User cant update.'})
+    }
+})
+
+
 // Creat blog post
 router.post('/posts', isAdmin, async (req, res) => {
     try {
@@ -117,6 +152,18 @@ router.delete('/posts/:id', isAdmin, async (req, res) => {
         res.status(500).json({ error: 'Failed to delete the blog post' });
     }
 });
+
+router.delete('/users/:id', async(req,res) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.params.id);
+        if(!deletedUser) {
+            return res.status(404).json({error: 'User not found.'})
+        }
+        res.status(200).json({message : 'User deleted successfully'});
+    } catch (err) {
+        res.status(500).json({error : 'Failed to delete the user.'})
+    }
+})
 
 module.exports = router;
 
