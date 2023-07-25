@@ -1,12 +1,21 @@
 let express = require('express');
 let router = express.Router();
 let Contact = require('../Models/Contact');
+const User = require("../Models/User");
 
 //All Contacts Messages
 router.get('/contact', async (req,res) => {
     try {
-        let contactMessages = await Contact.find();
-        res.status(201).send({contactMessages});
+        let email = req.query.email;
+        if(!email) {
+            let contact = await Contact.find();
+            res.status(201).send(contact);
+        } else {
+            let contact = await Contact.find({email: { $regex: email, $options: 'i' }},{},{lean:true})
+            res.status(200).json(contact);
+        }
+
+
     }
     catch (err) {
         res.status(500).json({error : 'There is a problem when getting contact messages.'})

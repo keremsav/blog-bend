@@ -4,7 +4,7 @@ const Categories = require('../Models/Categories');
 const {isAdmin} = require("./authMiddleware");
 
 // Create a new tag
-router.post('/categories',isAdmin, async (req, res) => {
+router.post('/categories', async (req, res) => {
     try {
         const { name} = req.body;
 
@@ -47,7 +47,7 @@ router.get('/categories/:id', async (req, res) => {
 });
 
 // Update a tag
-router.put('/categories/:id',isAdmin, async (req, res) => {
+router.put('/categories/:id', async (req, res) => {
     try {
         const { name } = req.body;
         const updatedCategories = await Categories.findByIdAndUpdate(
@@ -66,7 +66,7 @@ router.put('/categories/:id',isAdmin, async (req, res) => {
 });
 
 // Delete a tag
-router.delete('/categories/:id',isAdmin, async (req, res) => {
+router.delete('/categories/:id', async (req, res) => {
     try {
         const deletedCategory = await Categories.findByIdAndDelete(req.params.id);
         if (!deletedCategory) {
