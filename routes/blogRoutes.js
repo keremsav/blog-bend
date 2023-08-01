@@ -54,12 +54,11 @@ router.delete('/users/:id', async(req,res) => {
 
 
 // Creat blog post
-router.post('/posts', isAdmin, async (req, res) => {
+router.post('/posts', async (req, res) => {
     try {
-        const { title, content, tags,image,categoryIds } = req.body;
-        const author = req.user.username;
+        const { title, content, tags,image,categoryIds,author } = req.body;
 
-        const post = new Posts({ content,title, author, tags ,image,categoryIds});
+        const post =  new Posts({ title ,content, author,categoryIds, tags ,image});
         await post.save();
 
         res.status(201).json(post);
@@ -74,6 +73,8 @@ router.get('/posts', async (req, res) => {
         const page = parseInt(req.query.page) || 1; // Get the current page number from the query parameters
         const limit = parseInt(req.query.limit) || 6; // Get the number of records per page from the query parameters
         const date = parseInt(req.query.date) || -1;
+        let title = req.query.title || '';
+
 
         const totalCount = await Posts.countDocuments(); // Get the total number of records in the "Posts" collection
 
@@ -81,7 +82,12 @@ router.get('/posts', async (req, res) => {
 
         const skip = (page - 1) * limit; // Calculate the offset value
 
-        const posts = await Posts.find().sort({createdAt: date}).skip(skip).limit(limit); // Fetch the paginated posts from the database
+        let posts;
+        if(title) {
+             posts = await Posts.find({title: { $regex: title, $options: 'i' }},{},{lean : true});
+        } else {
+             posts = await Posts.find().sort({createdAt: date}).skip(skip).limit(limit); // Fetch the paginated posts from the database
+        }
 
         res.send({
             posts,
@@ -134,10 +140,9 @@ router.get('/posts/:id', async (req, res) => {
     }
 });
 //Update a blog post.
-router.put('/posts/:id', isAdmin, async (req, res) => {
+router.put('/posts/:id', async (req, res) => {
     try {
-        const { title, content, tags ,image,slug,categoryIds} = req.body;
-        const author = req.user.username;
+        const { title, content, author, tags ,image,slug,categoryIds} = req.body;
         const updatedPost = await Posts.findByIdAndUpdate(
             req.params.id,
             { title, content, tags ,image,author,slug,categoryIds},
@@ -154,7 +159,7 @@ router.put('/posts/:id', isAdmin, async (req, res) => {
 
 
 // Delete a blog post
-router.delete('/posts/:id', isAdmin, async (req, res) => {
+router.delete('/posts/:id', async (req, res) => {
     try {
         const deletedPost = await Posts.findByIdAndDelete(req.params.id);
         if (!deletedPost) {
