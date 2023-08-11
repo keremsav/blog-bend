@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const passport = require('passport');
 const User = require('../Models/User');
+let jwt = require('jsonwebtoken')
 const isAuth = require('./authMiddleware').isAuth;
 const isAdmin = require('./authMiddleware').isAdmin;
 let passValidator = require('./authMiddleware').passValidator;
@@ -13,13 +14,17 @@ let sendResetPassMail = require('../controllers/nodeMailer').sendResetPassMail;
 /**
  * -------------- POST ROUTES ----------------
  */
-
+const secretKey = 'Leo';
+const expiresIn = '1d';
 router.post('/login', passport.authenticate('local', {
     usernameField: 'email',
     passwordField: 'password',
-}),isAdmin, (req, res) => {
+}), (req, res) => {
+
+
+    const token = jwt.sign({ loggedIn: true }, secretKey, { expiresIn });
     // Authentication succeeded, send a custom response
-    res.cookie('loggedIn','true',{ maxAge: 2 * 60 * 60 * 1000, httpOnly: true }).json({ success: true });
+    res.send(token);
 });
 
 router.post('/register', async (req, res, next) => {

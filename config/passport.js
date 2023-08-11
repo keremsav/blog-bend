@@ -23,7 +23,6 @@ passport.use(new LocalStrategy({
             }
             const isValid = await bcrypt.compare(password, user.password);
             if (isValid) {
-                console.log(user)
                 return done(null, user);
             } else {
                 return done(null, false);

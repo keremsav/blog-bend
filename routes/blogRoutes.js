@@ -142,6 +142,7 @@ router.get('/posts/:id', async (req, res) => {
 //Update a blog post.
 router.put('/posts/:id', async (req, res) => {
     try {
+
         const { title, content, author, tags ,image,slug,categoryIds} = req.body;
         const updatedPost = await Posts.findByIdAndUpdate(
             req.params.id,
